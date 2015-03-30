@@ -29,7 +29,7 @@ using namespace cimg_library;
 #define PI 3.14159265  // Should be used from mathlib
 inline float sqr(float x) { return x*x; }
 
-
+//One change
 //****************************************************
 // Global Variables
 //****************************************************
