@@ -1,19 +1,22 @@
 CC = g++
-CFLAGS = -IEigen
-CPPFLAGS = -I/opt/X11/include
-LFLAGS = -L/opt/X11/lib
-libs = -lX11
+ifeq ($(shell sw_vers 2>/dev/null | grep Mac | awk '{ print $$2}'),Mac)
+	CFLAGS = -g -DGL_GLEXT_PROTOTYPES -I./include/ -I/usr/X11/include -DOSX -IEigen
+	LDFLAGS = -framework GLUT -framework OpenGL \
+    	-L"/System/Library/Frameworks/OpenGL.framework/Libraries" \
+    	-lGL -lGLU -lm -lstdc++
+else
+	CFLAGS = -g -DGL_GLEXT_PROTOTYPES -Iglut-3.7.6-bin -IEigen
+	LDFLAGS = -lglut -lGLU
+endif
 	
 RM = /bin/rm -f 
 all: main 
-
-main: main.o 
-	$(CC) $(CFLAGS) -o as2 main.o $(LFLAGS) ${libs}
-
-example_01.o: example_01.cpp
-	$(CC) $(CFLAGS) -c main.cpp -o main.o
+main: example_01.o 
+	$(CC) $(CFLAGS) -o as3 example_01.o $(LDFLAGS) 
+example_01.o: main.cpp
+	$(CC) $(CFLAGS) -c main.cpp -o example_01.o
 clean: 
-	$(RM) *.o as2
+	$(RM) *.o as3
  
 
 
