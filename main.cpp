@@ -33,9 +33,9 @@ using namespace std;
 
 
 #define PI 3.14159265  // Should be used from mathlib
+#define WIDTH 600
+#define HEIGHT 400
 inline float sqr(float x) { return x*x; }
-
-using namespace std;
 
 //****************************************************
 // Some Functions
@@ -61,6 +61,10 @@ struct curve {
   Vector3f a, b, c, d;
 };
 
+struct patch {
+  Matrix4f x, y, z;
+};
+
 
 
 //****************************************************
@@ -75,6 +79,7 @@ int numPatches;
 ifstream myfile;
 
 curve *curveArray;
+patch *patchArray;
 
 
 
@@ -84,7 +89,11 @@ void renderAdaptive() {
 
 
 void renderUniform() {
+  // Each iteration is for one patch, 4 curves
+  for (int i = 0; i < numPatches*4; i+=4) {
+    // Each iteration is one step in the calculation
 
+  }
 }
 
 
@@ -94,31 +103,63 @@ void renderUniform() {
 void parseInput() {
   string line;
   myfile.open(inputFileName);
+
   if (myfile.is_open()) {
     getline(myfile, line);
     numPatches = atoi(line.c_str());
 
     curveArray = new curve[numPatches*4];
 
+    patchArray = new patch[numPatches];
+
+    Matrix4f X;
+    Matrix4f Y;
+    Matrix4f Z;
+
     int i = 0;
+    int p = 0;
     while (getline(myfile, line)) {
       istringstream this_line(line);
       istream_iterator<float> begin(this_line), end;
       vector<float> v(begin, end);
 
+
+
       if (v.size() == 12) {
-        Vector3f a(v[0],v[1],v[2]);
-        Vector3f b(v[3],v[4],v[5]);
-        Vector3f c(v[6],v[7],v[8]);
-        Vector3f d(v[9],v[10],v[11]);
+        X(p,0) = v[0];
+        X(p,1) = v[3];
+        X(p,2) = v[6];
+        X(p,3) = v[9];
 
-        curve temp = {a, b, c, d};
+        Y(p,0) = v[1];
+        Y(p,1) = v[4];
+        Y(p,2) = v[7];
+        Y(p,3) = v[10];
 
-        curveArray[i] = temp;
+        Z(p,0) = v[2];
+        Z(p,1) = v[5];
+        Z(p,2) = v[8];
+        Z(p,3) = v[11];
 
         i++;
-      }
+        p++;
 
+        if (p == 4) {
+          patch temp = {X, Y, Z};
+          patchArray[i/4 - 1] = temp;
+          p = 0;
+        }
+
+        //Vector3f a(v[0],v[1],v[2]);
+        //Vector3f b(v[3],v[4],v[5]);
+        //Vector3f c(v[6],v[7],v[8]);
+        //Vector3f d(v[9],v[10],v[11]);
+
+        //curve temp = {a, b, c, d};
+
+        //curveArray[i] = temp;
+
+      }
     }
 
     myfile.close();
@@ -130,10 +171,11 @@ void parseInput() {
 
   // Print out all curves cleanly to test data input parsing
   for (int j = 0; j < numPatches*4; j++) {
-    printf("Curve: %f %f %f %f %f %f %f %f %f %f %f %f\n",curveArray[j].a(0),curveArray[j].a(1),curveArray[j].a(2),
-                                                          curveArray[j].b(0),curveArray[j].b(1),curveArray[j].b(2),
-                                                          curveArray[j].c(0),curveArray[j].c(1),curveArray[j].c(2),
-                                                          curveArray[j].d(0),curveArray[j].d(1),curveArray[j].d(2));
+    printf("Curve: %f %f %f %f %f %f %f %f %f %f %f %f\n",
+      curveArray[j].a(0),curveArray[j].a(1),curveArray[j].a(2),
+      curveArray[j].b(0),curveArray[j].b(1),curveArray[j].b(2),
+      curveArray[j].c(0),curveArray[j].c(1),curveArray[j].c(2),
+      curveArray[j].d(0),curveArray[j].d(1),curveArray[j].d(2));
   }
 
   if (uniform == true) {
@@ -217,20 +259,11 @@ void circle(float centerX, float centerY, float radius) {
 
   for (i=0;i<viewport.w;i++) {
     for (j=0;j<viewport.h;j++) {
-
-
-        //setPixel(i, j, R(0), R(1), R(2));
-
-        // This is amusing, but it assumes negative color values are treated reasonably.
-        // setPixel(i,j, x/radius, y/radius, z/radius );
+        setPixel(i, j, 0, 0, 0);
       }
-
-
     }
     glEnd();
   }
-
-
   
 
 void keyPressed(unsigned char key, int x, int y) {
@@ -291,10 +324,13 @@ void arrowKeyPressed(int key, int x, int y) {
 //***************************************************
 void myDisplay() {
 //glutKeyboardFunc(keyPressed);
-  glClear(GL_COLOR_BUFFER_BIT);				// clear the color buffer
+  glClear(GL_COLOR_BUFFER_BIT);		// clear the color buffer
 
-  glMatrixMode(GL_MODELVIEW);			        // indicate we are specifying camera transformations
-  glLoadIdentity();				        // make sure transformation is "zero'd"
+  // indicate we are specifying camera transformations
+  glMatrixMode(GL_MODELVIEW);	
+
+  // make sure transformation is "zero'd"		
+  glLoadIdentity();				        
 
 
   // Start drawing
@@ -353,8 +389,8 @@ void renderScene(int argc, char *argv[]) {
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 
   // Initalize theviewport size
-  viewport.w = 400;
-  viewport.h = 400;
+  viewport.w = WIDTH;
+  viewport.h = HEIGHT;
 
   //The size and position of the window
   glutInitWindowSize(viewport.w, viewport.h);
@@ -365,19 +401,12 @@ void renderScene(int argc, char *argv[]) {
   glutKeyboardFunc(keyPressed);
   glutSpecialFunc(arrowKeyPressed);
 
-  initScene();							// quick function to set up scene
+  initScene();						    // quick function to set up scene
 
-  glutDisplayFunc(myDisplay);				// function to run when its time to draw something
-  glutReshapeFunc(myReshape);				// function to run when the window gets resized
+  glutDisplayFunc(myDisplay);	// function to run when its time to draw something
+  glutReshapeFunc(myReshape);	// function to run when the window gets resized
 
   glutMainLoop();							// infinite loop that will keep drawing and resizing
   // and whatever else
 }
-
-
-
-
-
-
-
 
