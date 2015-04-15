@@ -43,7 +43,8 @@ using namespace std;
 
 void renderScene(int argc, char *argv[]);
 void parseInput();
-void split(const string& s, char c, vector<string>& v);
+void keyPressed(unsigned char key, int x, int y);
+void arrowKeyPressed(int key, int x, int y);
 
 //****************************************************
 // Some Classes
@@ -127,9 +128,13 @@ void parseInput() {
   }   
   printf("Num Patches: %i\n",numPatches);
 
-  /*for (int j = 0; j < numPatches*4; j++) {
-    printf("Curve: %f \n",curveArray[j].a(0));
-  }*/
+  // Print out all curves cleanly to test data input parsing
+  for (int j = 0; j < numPatches*4; j++) {
+    printf("Curve: %f %f %f %f %f %f %f %f %f %f %f %f\n",curveArray[j].a(0),curveArray[j].a(1),curveArray[j].a(2),
+                                                          curveArray[j].b(0),curveArray[j].b(1),curveArray[j].b(2),
+                                                          curveArray[j].c(0),curveArray[j].c(1),curveArray[j].c(2),
+                                                          curveArray[j].d(0),curveArray[j].d(1),curveArray[j].d(2));
+  }
 
   if (uniform == true) {
     renderUniform();
@@ -231,22 +236,56 @@ void circle(float centerX, float centerY, float radius) {
 void keyPressed(unsigned char key, int x, int y) {
   switch (key) {
     case ' ':
-      printf("Spacebar key pressed, program quitting...\n");
+      printf("Spacebar key pressed: program quitting.\n");
       exit(1);
       break;
     case 's':
       //Toggle flat and smooth shading
-      printf("'s' key pressed.\n");
+      printf("'s' key pressed: toggling between flat and smooth shading.\n");
       break;
     case 'w':
       //Toggle filled and wireframe mode
-      printf("'w' key pressed.\n");
+      printf("'w' key pressed: toggling between filled and wireframe mode.\n");
       break;
+    case '+':
+      printf("'+' key pressed: zooming in.\n");
+      break;
+    case '-':
+      printf("'-' key pressed: zooming out.\n");
+      break;  
     default:
       printf("'%c' key pressed, doing nothing.\n", key);
       break;  
   }
 }
+
+void arrowKeyPressed(int key, int x, int y) {
+  switch (key) {
+    case GLUT_KEY_UP:
+      if (glutGetModifiers() == 1) {
+        printf("Up arrow key pressed, translating object up.\n");
+      }
+      break;
+    case GLUT_KEY_DOWN:
+      if (glutGetModifiers() == 1) {
+        printf("Down arrow key pressed, translating object down.\n");
+      }
+      break;
+    case GLUT_KEY_LEFT:
+      if (glutGetModifiers() == 1) {
+        printf("Left arrow key pressed, translating object left.\n");
+      }
+      break;
+    case GLUT_KEY_RIGHT:
+      if (glutGetModifiers() == 1) {
+        printf("Right arrow key pressed, translating object right.\n");
+      }
+      break;      
+    default:
+      break; 
+  }
+}
+
 //****************************************************
 // function that does the actual drawing of stuff
 //***************************************************
@@ -324,6 +363,7 @@ void renderScene(int argc, char *argv[]) {
 
   //Set the keyboard function
   glutKeyboardFunc(keyPressed);
+  glutSpecialFunc(arrowKeyPressed);
 
   initScene();							// quick function to set up scene
 
