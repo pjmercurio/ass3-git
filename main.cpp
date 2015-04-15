@@ -6,6 +6,9 @@
 #include <cmath>
 #include <stdlib.h>
 #include <stdio.h>
+#include <utility>
+#include <iterator>
+#include <sstream>
 #include "Eigen/Dense"
 
 #ifdef _WIN32
@@ -35,6 +38,14 @@ inline float sqr(float x) { return x*x; }
 using namespace std;
 
 //****************************************************
+// Some Functions
+//****************************************************
+
+void renderScene(int argc, char *argv[]);
+void parseInput();
+void split(const string& s, char c, vector<string>& v);
+
+//****************************************************
 // Some Classes
 //****************************************************
 
@@ -45,11 +56,8 @@ class Viewport {
     int w, h; // width and height
 };
 
-struct patch {
-  float a, b, c, d,
-        e, f, g, h,
-        i, j, k, l,
-        m, n, o, p;
+struct curve {
+  Vector3f a, b, c, d;
 };
 
 
@@ -65,7 +73,18 @@ bool uniform = true;
 int numPatches;
 ifstream myfile;
 
-patch *patchArray;
+curve *curveArray;
+
+
+
+void renderAdaptive() {
+
+}
+
+
+void renderUniform() {
+
+}
 
 
 //****************************************************
@@ -78,15 +97,27 @@ void parseInput() {
     getline(myfile, line);
     numPatches = atoi(line.c_str());
 
-    patchArray = new patch[numPatches];
+    curveArray = new curve[numPatches*4];
 
+    int i = 0;
     while (getline(myfile, line)) {
-      char *pch = strtok(line.c_str(), " ");
-      while (pch != NULL) {
-        printf("%s\n",pch);
-        pch = strtok(NULL, " ");
+      istringstream this_line(line);
+      istream_iterator<float> begin(this_line), end;
+      vector<float> v(begin, end);
+
+      if (v.size() == 12) {
+        Vector3f a(v[0],v[1],v[2]);
+        Vector3f b(v[3],v[4],v[5]);
+        Vector3f c(v[6],v[7],v[8]);
+        Vector3f d(v[9],v[10],v[11]);
+
+        curve temp = {a, b, c, d};
+
+        curveArray[i] = temp;
+
+        i++;
       }
-      printf("%s\n",line.c_str());
+
     }
 
     myfile.close();
@@ -95,7 +126,19 @@ void parseInput() {
     printf("Unable to open file\n");
   }   
   printf("Num Patches: %i\n",numPatches);
+
+  /*for (int j = 0; j < numPatches*4; j++) {
+    printf("Curve: %f \n",curveArray[j].a(0));
+  }*/
+
+  if (uniform == true) {
+    renderUniform();
+  }
+  else {
+    renderAdaptive();
+  }
 }
+
 
 //****************************************************
 // Simple init function
@@ -200,10 +243,8 @@ void keyPressed(unsigned char key, int x, int y) {
       printf("'w' key pressed.\n");
       break;
     default:
+      printf("'%c' key pressed, doing nothing.\n", key);
       break;  
-  }
-  if (key == ' ') {
-    exit(1);
   }
 }
 //****************************************************
@@ -261,6 +302,13 @@ int main(int argc, char *argv[]) {
   else {
     printf("UNKNOWN ERROR!\n");
   }
+  renderScene(argc, argv);
+  return 0;
+ }
+
+void renderScene(int argc, char *argv[]) { 
+
+  printf("Rendering scene...\n");
 
   //This tells glut to use a double-buffered window with red, green, and blue channels 
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
@@ -284,8 +332,6 @@ int main(int argc, char *argv[]) {
 
   glutMainLoop();							// infinite loop that will keep drawing and resizing
   // and whatever else
-
-  return 0;
 }
 
 
