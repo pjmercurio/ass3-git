@@ -16,8 +16,8 @@ void BezierMain::parsePatchfile(char *filename) {
 
     ifstream in(filename);
 
-    String line;
-    String patch;
+    string line;
+    string patch;
 
     getline(in, line);
 
@@ -27,13 +27,13 @@ void BezierMain::parsePatchfile(char *filename) {
     int num_patches = atoi(patch.c_str());
 
     for(int i=0; i<num_patches; i++) {
-        String value;
+        string value;
 
         // need to create rows every time we use 2d vector
-        vector<vector<Point3f*> > mat;
+        vector<vector<Vector3f*> > mat;
         for(int i=0; i<4; i++)
         {
-            vector<Point3f*> row(4);
+            vector<Vector3f*> row(4);
             mat.push_back(row);
         }
 
@@ -43,7 +43,7 @@ void BezierMain::parsePatchfile(char *filename) {
             istringstream sin(line);
             // four values per row
             for(int k=0; k<4; k++) {
-                Point3f *p = new Point3f;
+                Vector3f *p = new Vector3f;
                 sin >> value;
                 (*p)[0] = atof(value.c_str());
                 sin >> value;

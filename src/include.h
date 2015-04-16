@@ -35,7 +35,4 @@
 using namespace std;
 using namespace Eigen;
 
-typedef string String;
-#include "point.h"
-
 #endif // INCLUDE_H
