@@ -4,7 +4,7 @@
 
 BezierMain::BezierMain() {
     t = Transform<float,3,Affine>::Identity();
-    normal = Vector3f(0,0,1);
+    normal = Vector3f(0,0,-1);
     right = Vector3f(1,0,0);
     draw_t = WIREFRAME;
 	shading_t = SMOOTH;

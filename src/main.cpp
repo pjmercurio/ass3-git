@@ -30,9 +30,7 @@ void reshape(int w, int h) {
     viewport.h = h;
     
     glViewport (0,0,viewport.w,viewport.h);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0, viewport.w, 0, viewport.h);
+    display();
 }
 
 void handleInput(unsigned char key, int x, int y)
