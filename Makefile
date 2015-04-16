@@ -1,22 +1,39 @@
-CC = g++
+# CONFIGURATION
+PROJECT := bezier
+TESTBUILD := beztest 
+
+CC := g++
+CCFLAGS := -Ilib -Wall -O3
 ifeq ($(shell sw_vers 2>/dev/null | grep Mac | awk '{ print $$2}'),Mac)
-	CFLAGS = -g -DGL_GLEXT_PROTOTYPES -I./include/ -I/usr/X11/include -DOSX -IEigen
+	# CFLAGS = -g -DGL_GLEXT_PROTOTYPES -I./include/ -I/usr/X11/include -DOSX
 	LDFLAGS = -framework GLUT -framework OpenGL \
     	-L"/System/Library/Frameworks/OpenGL.framework/Libraries" \
     	-lGL -lGLU -lm -lstdc++
 else
-	CFLAGS = -g -DGL_GLEXT_PROTOTYPES -Iglut-3.7.6-bin -IEigen
-	LDFLAGS = -lglut -lGLU
+	# CFLAGS = -g -DGL_GLEXT_PROTOTYPES -Iglut-3.7.6-bin
+	LDFLAGS = -lglu32 -lglut32 -lopengl32
 endif
+
+SRCFOLDER := src
+OBJFOLDER := obj
+
+# processing stuff
+SRC := $(wildcard $(SRCFOLDER)/*.cpp)
+OBJ := $(addprefix $(OBJFOLDER)/, $(notdir $(SRC:.cpp=.o)))
+
+RM = rm -f
+DELETEOBJS = $(OBJFOLDER)/*.o $(PROJECT)
+
+.PHONY: all clean build
+all: $(PROJECT)
+
+clean:
+	$(RM) $(DELETEOBJS)
 	
-RM = /bin/rm -f 
-all: main 
-main: example_01.o 
-	$(CC) $(CFLAGS) -o as3 example_01.o $(LDFLAGS) 
-example_01.o: main.cpp
-	$(CC) $(CFLAGS) -c main.cpp -o example_01.o
-clean: 
-	$(RM) *.o as3
- 
+build: clean all
 
-
+# compile targets
+$(PROJECT): $(OBJ)
+	$(CC) $(CCFLAGS) -o $@ $^ $(LDFLAGS)
+$(OBJFOLDER)/%.o: $(SRCFOLDER)/%.cpp
+	$(CC) $(CCFLAGS) -o $@ -c $< 
